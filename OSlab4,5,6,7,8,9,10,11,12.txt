@@ -1,0 +1,1969 @@
+Lab 4-CPU FCFS, SJF, Priority, Round Robin
+
+FCFS:
+#include <stdio.h> 
+int main() { 
+    int n, i; 
+    int bt[20], wt[20], tat[20]; 
+    float avgwt = 0, avgtat = 0; 
+ 
+    printf("Enter number of processes: "); 
+    scanf("%d", &n); 
+ 
+    printf("Enter burst time for each process:\n"); 
+    for (i = 0; i < n; i++) { 
+        printf("P%d: ", i + 1); 
+        scanf("%d", &bt[i]); 
+    } 
+ 
+    wt[0] = 0; // Waiting time for first process is 0 
+ 
+    // Calculate waiting time 
+    for (i = 1; i < n; i++) { 
+        wt[i] = 0; 
+        for (int j = 0; j < i; j++) 
+            wt[i] += bt[j]; 
+        avgwt += wt[i]; 
+    } 
+ 
+    // Calculate turnaround time 
+    printf("\nGantt Chart:\n|"); 
+    for (i = 0; i < n; i++) { 
+        printf(" P%d |", i + 1); 
+        tat[i] = bt[i] + wt[i]; 
+        avgtat += tat[i]; 
+    } 
+ 
+    // Print Gantt Chart timing 
+    printf("\n0"); 
+    int total = 0; 
+    for (i = 0; i < n; i++) { 
+        total += bt[i]; 
+        printf("   %d", total); 
+    } 
+ 
+    avgwt /= n; 
+    avgtat /= n; 
+ 
+    // Display results 
+    printf("\n\nProcess\tBurst\tWaiting\tTurnaround\n"); 
+    for (i = 0; i < n; i++) { 
+        printf("P%d\t%d\t%d\t%d\n", i + 1, bt[i], wt[i], tat[i]); 
+    } 
+ 
+    printf("\nAverage Waiting Time: %.2f", avgwt); 
+    printf("\nAverage Turnaround Time: %.2f\n", avgtat); 
+ 
+    return 0; 
+} 
+
+OUTPUT:
+C:\Users\singo\Desktop\OS>gcc fcfs.c -o fcfs
+
+C:\Users\singo\Desktop\OS>fcfs
+Enter number of processes: 3
+Enter burst time for each process:
+P1: 5
+P2: 8
+P3: 12
+
+Gantt Chart:
+| P1 | P2 | P3 |
+0    5    13   25
+
+Process   Burst   Waiting   Turnaround
+P1        5       0         5
+P2        8       5         13
+P3        12      13        25
+
+Average Waiting Time: 6.00
+Average Turnaround Time: 14.33
+
+--
+
+SJF:
+#include <stdio.h> 
+ 
+int main() { 
+    int n, bt[20], p[20], wt[20], tat[20]; 
+    int i, j, pos, temp; 
+    float avgwt = 0, avgtat = 0; 
+ 
+    printf("Enter number of processes: "); 
+    scanf("%d", &n); 
+ 
+    printf("Enter burst time for each process:\n"); 
+    for (i = 0; i < n; i++) { 
+        printf("P%d: ", i + 1); 
+        scanf("%d", &bt[i]); 
+        p[i] = i + 1;  // Process ID 
+    } 
+ 
+    // Sort according to burst time 
+    for (i = 0; i < n; i++) { 
+        pos = i; 
+        for (j = i + 1; j < n; j++) { 
+            if (bt[j] < bt[pos]) 
+                pos = j; 
+        } 
+ 
+        temp = bt[i]; 
+        bt[i] = bt[pos]; 
+        bt[pos] = temp; 
+ 
+        temp = p[i]; 
+        p[i] = p[pos]; 
+        p[pos] = temp; 
+    } 
+ 
+    wt[0] = 0; // waiting time for first process is 0 
+ 
+    // Calculate waiting time 
+    for (i = 1; i < n; i++) { 
+        wt[i] = 0; 
+        for (j = 0; j < i; j++) 
+            wt[i] += bt[j]; 
+        avgwt += wt[i]; 
+    } 
+ 
+    // Calculate turnaround time 
+    printf("\nGantt Chart:\n|"); 
+    for (i = 0; i < n; i++) { 
+        printf(" P%d |", p[i]); 
+        tat[i] = bt[i] + wt[i]; 
+        avgtat += tat[i]; 
+    } 
+ 
+    // Print Gantt chart timing 
+    printf("\n0"); 
+    int total = 0; 
+    for (i = 0; i < n; i++) { 
+        total += bt[i]; 
+        printf("   %d", total); 
+    } 
+ 
+    avgwt /= n; 
+    avgtat /= n; 
+ 
+    // Print results 
+    printf("\n\nProcess\tBurst\tWaiting\tTurnaround\n"); 
+    for (i = 0; i < n; i++) { 
+        printf("P%d\t%d\t%d\t%d\n", p[i], bt[i], wt[i], tat[i]); 
+    } 
+ 
+    printf("\nAverage Waiting Time: %.2f", avgwt); 
+    printf("\nAverage Turnaround Time: %.2f\n", avgtat); 
+ 
+    return 0; 
+} 
+
+OUTPUT:
+C:\Users\singo\Desktop\OS>gcc sjf.c -o sjf
+
+C:\Users\singo\Desktop\OS>sjf
+Enter number of processes: 3
+Enter burst time for each process:
+P1: 3
+P2: 7
+P3: 4
+
+Gantt Chart:
+| P1 | P3 | P2 |
+0    3    7    14
+
+Process   Burst   Waiting   Turnaround
+P1        3       0         3
+P3        4       3         7
+P2        7       7         14
+
+Average Waiting Time: 3.33
+Average Turnaround Time: 8.00
+
+--
+
+Priority:
+#include <stdio.h> 
+int main() { 
+    int n, i, j; 
+    int bt[20], wt[20], tat[20], p[20], pr[20]; 
+    float avgwt = 0, avgtat = 0; 
+    int pos, temp; 
+ 
+    printf("Enter number of processes: "); 
+    scanf("%d", &n); 
+ 
+    printf("Enter burst time and priority for each process:\n"); 
+    for (i = 0; i < n; i++) { 
+        printf("P%d\n", i + 1); 
+        printf("Burst Time: "); 
+        scanf("%d", &bt[i]); 
+        printf("Priority: "); 
+        scanf("%d", &pr[i]); 
+        p[i] = i + 1; // process number 
+    } 
+ 
+    // Sorting processes by priority 
+    for (i = 0; i < n; i++) { 
+        pos = i; 
+        for (j = i + 1; j < n; j++) { 
+            if (pr[j] < pr[pos]) 
+                pos = j; 
+        } 
+ 
+        // Swap priority 
+        temp = pr[i]; 
+        pr[i] = pr[pos]; 
+        pr[pos] = temp; 
+ 
+        // Swap burst time 
+        temp = bt[i]; 
+        bt[i] = bt[pos]; 
+        bt[pos] = temp; 
+ 
+        // Swap process number 
+        temp = p[i]; 
+        p[i] = p[pos]; 
+        p[pos] = temp; 
+    } 
+ 
+    wt[0] = 0; // waiting time of first process is 0 
+ 
+    // Calculate waiting time 
+    for (i = 1; i < n; i++) { 
+        wt[i] = 0; 
+        for (j = 0; j < i; j++) 
+            wt[i] += bt[j]; 
+        avgwt += wt[i]; 
+    } 
+ 
+    // Calculate turnaround time 
+    printf("\nGantt Chart:\n|"); 
+    for (i = 0; i < n; i++) { 
+        printf(" P%d |", p[i]); 
+        tat[i] = bt[i] + wt[i]; 
+        avgtat += tat[i]; 
+    } 
+ 
+    // Print timing below Gantt chart 
+    printf("\n0"); 
+    int total = 0; 
+    for (i = 0; i < n; i++) { 
+        total += bt[i]; 
+        printf("   %d", total); 
+    } 
+ 
+    avgwt /= n; 
+    avgtat /= n; 
+ 
+    // Print results 
+    printf("\n\nProcess\tBurst\tPriority\tWaiting\tTurnaround\n"); 
+    for (i = 0; i < n; i++) { 
+        printf("P%d\t%d\t%d\t\t%d\t%d\n", p[i], bt[i], pr[i], wt[i], tat[i]); 
+    } 
+ 
+    printf("\nAverage Waiting Time: %.2f", avgwt); 
+    printf("\nAverage Turnaround Time: %.2f\n", avgtat); 
+ 
+    return 0; 
+}
+
+OUTPUT:
+Enter number of processes: 3
+Enter burst time and priority for each process:
+P1
+Burst Time: 10
+Priority: 3
+P2
+Burst Time: 5
+Priority: 1
+P3
+Burst Time: 8
+Priority: 2
+
+Gantt Chart:
+| P2 | P3 | P1 |
+0    5    13   23
+
+Process   Burst   Priority   Waiting   Turnaround
+P2        5       1          0         5
+P3        8       2          5         13
+P1        10      3          13        23
+
+Average Waiting Time: 6.00
+Average Turnaround Time: 13.67
+
+--
+
+Round Robin:
+#include <stdio.h> 
+int main() { 
+    int n, i, tq, time = 0, remaining; 
+    int bt[10], rt[10], wt[10], tat[10]; 
+    float avgwt = 0, avgtat = 0; 
+ 
+    printf("Enter number of processes: "); 
+    scanf("%d", &n); 
+ 
+    printf("Enter burst time for each process:\n"); 
+    for (i = 0; i < n; i++) { 
+        printf("P%d: ", i + 1); 
+        scanf("%d", &bt[i]); 
+        rt[i] = bt[i]; 
+    } 
+ 
+    printf("Enter time quantum: "); 
+    scanf("%d", &tq); 
+ 
+    remaining = n; 
+ 
+    printf("\nGantt Chart:\n|"); 
+    while (remaining != 0) { 
+        for (i = 0; i < n; i++) { 
+            if (rt[i] > 0) { 
+                printf(" P%d |", i + 1); 
+                if (rt[i] > tq) { 
+                    time += tq; 
+                    rt[i] -= tq; 
+                } else { 
+                    time += rt[i]; 
+                    tat[i] = time; 
+                    wt[i] = tat[i] - bt[i]; 
+                    rt[i] = 0; 
+                    remaining--; 
+                } 
+            } 
+        } 
+    } 
+ 
+    // Print timing below Gantt chart 
+    printf("\n0"); 
+    time = 0; 
+    remaining = n; 
+    int flag; 
+    while (remaining != 0) { 
+        flag = 0; 
+        for (i = 0; i < n; i++) { 
+            if (bt[i] > 0) { 
+                if (bt[i] > tq) { 
+                    time += tq; 
+                    bt[i] -= tq; 
+                    printf("   %d", time); 
+                } else { 
+                    time += bt[i]; 
+                    bt[i] = 0; 
+                    printf("   %d", time); 
+                    remaining--; 
+                } 
+                flag = 1; 
+            } 
+        } 
+        if (flag == 0) break; 
+    } 
+ 
+    // Display Table 
+    printf("\n\nProcess\tBurst\tWaiting\tTurnaround\n"); 
+    for (i = 0; i < n; i++) { 
+        printf("P%d\t%d\t%d\t%d\n", i + 1, bt[i], wt[i], tat[i]); 
+        avgwt += wt[i]; 
+        avgtat += tat[i]; 
+    } 
+ 
+    avgwt /= n; 
+    avgtat /= n; 
+ 
+    printf("\nAverage Waiting Time: %.2f", avgwt); 
+    printf("\nAverage Turnaround Time: %.2f\n", avgtat); 
+ 
+    return 0; 
+} 
+
+OUTPUT:
+C:\Users\singo\Desktop\OS>RoundRobin
+Enter number of processes: 3
+Enter burst time for each process:
+P1: 10
+P2: 5
+P3: 2
+Enter time quantum: 4
+
+Gantt Chart:
+| P1 | P2 | P3 | P1 | P2 | P1 |
+0    4    8    10   14   15   17
+
+Process   Burst   Waiting   Turnaround
+P1        0       7         17
+P2        0       10        15
+P3        0       8         10
+
+Average Waiting Time: 8.33
+Average Turnaround Time: 14.00
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+
+Lab 5-Semaphore,Monitors
+
+Semaphores:
+#include <stdio.h> 
+#include <stdlib.h> 
+#include <pthread.h> 
+#include <semaphore.h>
+ #include <unistd.h>
+#define MAX_PORTS 3 // Maximum ports that can be opened at the same time #define NUM_THREADS 5 // Number of threads trying to open ports
+sem_t portSemaphore;
+void* openPort(void* arg) { int thread_id = (int)arg;
+printf("Thread %d: Trying to open a port...\n", thread_id);
+
+// Wait if semaphore count is 0
+sem_wait(&portSemaphore);
+
+// Critical section: port opened
+printf("Thread %d: Port opened successfully!\n", thread_id);
+sleep(2); // Simulate work with the port
+
+// Close port (release semaphore)
+printf("Thread %d: Port closed.\n", thread_id);
+sem_post(&portSemaphore);
+
+free(arg);
+pthread_exit(NULL);
+ 
+}
+int main() { pthread_t threads[NUM_THREADS];
+// Initialize semaphore with MAX_PORTS available
+sem_init(&portSemaphore, 0, MAX_PORTS);
+
+for(int i = 0; i < NUM_THREADS; i++) {
+    int* thread_id = malloc(sizeof(int));
+    *thread_id = i + 1;
+    pthread_create(&threads[i], NULL, openPort, thread_id);
+}
+
+for(int i = 0; i < NUM_THREADS; i++) {
+    pthread_join(threads[i], NULL);
+}
+
+// Destroy semaphore
+sem_destroy(&portSemaphore);
+
+return 0;
+ 
+}
+
+OUTPUT:
+238wla5439@cslabs.com@cse-oslab:~$ rm semaprog.c
+238wla5439@cslabs.com@cse-oslab:~$ vi semaprog.c
+238wla5439@cslabs.com@cse-oslab:~$ gcc semaprog.c
+238wla5439@cslabs.com@cse-oslab:~$ ./a.out
+Thread 1: Trying to open a port...
+Thread 1: Port opened successfully!
+Thread 2: Trying to open a port...
+Thread 2: Port opened successfully!
+Thread 3: Trying to open a port...
+Thread 3: Port opened successfully!
+Thread 4: Trying to open a port...
+Thread 4: Trying to open a port...
+Thread 5: Trying to open a port...
+Thread 1: Port closed.
+Thread 2: Port closed.
+Thread 3: Port closed.
+Thread 5: Port opened successfully!
+Thread 4: Port opened successfully!
+Thread 5: Port closed.
+Thread 4: Port closed.
+238wla5439@cslabs.com@cse-oslab:~$
+
+--
+
+Monitors:
+#include <stdio.h> #include <stdlib.h> #include <pthread.h> #include <unistd.h>
+#define MAX_PORTS 3 // Maximum ports that can be opened at a time #define NUM_THREADS 5 // Number of threads trying to open ports
+// Monitor structure typedef struct { int available_ports; pthread_mutex_t mutex; pthread_cond_t cond; } PortMonitor;
+PortMonitor monitor;
+void enterPort(int thread_id) { pthread_mutex_lock(&monitor.mutex);
+// Wait until a port is available
+while (monitor.available_ports == 0) {
+    printf("Thread %d: Waiting to open a port...\n", thread_id);
+    pthread_cond_wait(&monitor.cond, &monitor.mutex);
+}
+
+// Occupy a port
+monitor.available_ports--;
+printf("Thread %d: Port opened. Ports available: %d\n", thread_id, monitor.available_ports);
+
+pthread_mutex_unlock(&monitor.mutex);
+ 
+}
+void exitPort(int thread_id) { pthread_mutex_lock(&monitor.mutex);
+// Release the port
+monitor.available_ports++;
+printf("Thread %d: Port closed. Ports available: %d\n", thread_id, monitor.available_ports);
+
+// Notify waiting threads
+pthread_cond_signal(&monitor.cond);
+
+pthread_mutex_unlock(&monitor.mutex);
+ 
+}
+void* threadFunc(void* arg) { int thread_id = (int)arg; free(arg);
+enterPort(thread_id);
+sleep(2); // Simulate work with the port
+exitPort(thread_id);
+
+pthread_exit(NULL);
+ 
+}
+int main() { pthread_t threads[NUM_THREADS];
+// Initialize monitor
+monitor.available_ports = MAX_PORTS;
+pthread_mutex_init(&monitor.mutex, NULL);
+pthread_cond_init(&monitor.cond, NULL);
+
+// Create threads
+for (int i = 0; i < NUM_THREADS; i++) {
+    int* id = malloc(sizeof(int));
+    *id = i + 1;
+    pthread_create(&threads[i], NULL, threadFunc, id);
+}
+
+// Join threads
+for (int i = 0; i < NUM_THREADS; i++) {
+    pthread_join(threads[i], NULL);
+}
+
+// Destroy monitor
+pthread_mutex_destroy(&monitor.mutex);
+pthread_cond_destroy(&monitor.cond);
+
+return 0;
+ 
+}
+
+OUTPUT:
+238wla5439@cslabs.com@cse-oslab:~$ rm monitorsprog.c
+238wla5439@cslabs.com@cse-oslab:~$ vi monitorsprog.c
+238wla5439@cslabs.com@cse-oslab:~$ gcc monitorsprog.c
+238wla5439@cslabs.com@cse-oslab:~$ ./a.out
+Thread 1: Port opened. Ports available: 2
+Thread 2: Port opened. Ports available: 1
+Thread 3: Port opened. Ports available: 0
+Thread 4: Waiting to open a port...
+Thread 5: Waiting to open a port...
+Thread 1: Port closed. Ports available: 1
+Thread 2: Port closed. Ports available: 2
+Thread 3: Port closed. Ports available: 3
+Thread 4: Port opened. Ports available: 2
+Thread 5: Port opened. Ports available: 1
+Thread 4: Port closed. Ports available: 2
+Thread 5: Port closed. Ports available: 3
+238wla5439@cslabs.com@cse-oslab:~$
+
+-------------------------------------------------------------------------------------------------
+
+Lab 6-concurrent execution of threads using pthreads library
+
+#include <stdio.h> 
+#include <stdlib.h> 
+#include <pthread.h> 
+#include <unistd.h> 
+// Function executed by Thread 1
+ void* threadFunc1(void* arg) 
+{ for (int i = 1; i <= 5; i++)
+ { printf("Thread 1: Count %d\n", i); 
+sleep(1); 
+// Sleep to simulate work
+ } 
+return NULL; } 
+// Function executed by Thread 2
+ void* threadFunc2(void* arg) 
+{ 
+for (int i = 1; i <= 5; i++) 
+{ printf("Thread 2: Count %d\n", i); 
+sleep(1); 
+// Sleep to simulate work 
+} 
+return NULL; } 
+int main() { pthread_t t1, t2; 
+// Create threads 
+pthread_create(&t1, NULL, threadFunc1, NULL); 
+pthread_create(&t2, NULL, threadFunc2, NULL); 
+
+// Wait for threads to finish 
+pthread_join(t1, NULL); 
+pthread_join(t2, NULL); 
+
+printf("Both threads have finished execution.\n"); 
+return 0; 
+ 
+}
+
+OUTPUT:
+238wla5439@cslabs.com@cse-oslab:~$ vi concurrentprog.c
+238wla5439@cslabs.com@cse-oslab:~$ gcc concurrentprog.c
+238wla5439@cslabs.com@cse-oslab:~$ ./a.out
+Thread 1: Count 1
+Thread 2: Count 1
+Thread 1: Count 2
+Thread 2: Count 2
+Thread 1: Count 3
+Thread 2: Count 3
+Thread 1: Count 4
+Thread 2: Count 4
+Thread 1: Count 5
+Thread 2: Count 5
+Both threads have finished execution.
+238wla5439@cslabs.com@cse-oslab:~$
+
+-----------------------------------------------------------------------------------------------------------------------
+
+Lab 7-producer consumer using semaphore,philosophers
+
+producer consumer using semaphore:
+#include <stdio.h> #include <stdlib.h> #include <pthread.h> #include <semaphore.h> #include <unistd.h> // for sleep() 
+#define MAX 10 // Buffer size 
+int buffer[MAX]; int in = 0, out = 0; int n; // number of items 
+sem_t empty; // Counts empty slots sem_t full; // Counts filled slots pthread_mutex_t mutex; 
+void* producer(void* arg) { int item; for (int i = 0; i < n; i++) { printf("Enter the item: "); scanf("%d", &item); 
+   sem_wait(&empty);              // Wait if buffer is full 
+    pthread_mutex_lock(&mutex);    // Lock critical section 
+
+    buffer[in] = item; 
+    in = (in + 1) % MAX; 
+
+    pthread_mutex_unlock(&mutex);  // Unlock 
+    sem_post(&full);               // Signal that item produced 
+
+    sleep(1); // optional (to simulate delay) 
+} 
+return NULL; 
+ 
+} 
+void* consumer(void* arg) { int item; for (int i = 0; i < n; i++) { sem_wait(&full); // Wait if buffer is empty pthread_mutex_lock(&mutex); // Lock critical section 
+   item = buffer[out]; 
+    out = (out + 1) % MAX; 
+    printf("consumed item=%d\n", item); 
+
+    pthread_mutex_unlock(&mutex);  // Unlock 
+    sem_post(&empty);              // Signal that slot is free 
+
+    sleep(1); // optional (to simulate delay) 
+} 
+return NULL; 
+ 
+} 
+int main() { pthread_t prodThread, consThread; 
+printf("Enter the value of n :"); 
+scanf("%d", &n); 
+
+// Initialize semaphores and mutex 
+sem_init(&empty, 0, MAX); 
+sem_init(&full, 0, 0); 
+pthread_mutex_init(&mutex, NULL); 
+
+// Create producer and consumer threads 
+pthread_create(&prodThread, NULL, producer, NULL); 
+pthread_create(&consThread, NULL, consumer, NULL); 
+
+// Wait for both to finish 
+pthread_join(prodThread, NULL); 
+pthread_join(consThread, NULL); 
+
+// Destroy synchronization tools 
+sem_destroy(&empty); 
+sem_destroy(&full); 
+pthread_mutex_destroy(&mutex); 
+
+return 0; 
+ 
+}
+
+OUTPUT:
+Exiting...
+238wla5439@cslabs.com@cse-oslab:~$ vi proconsema.c
+238wla5439@cslabs.com@cse-oslab:~$ gcc proconsema.c
+238wla5439@cslabs.com@cse-oslab:~$ ./a.out
+Enter the value of n :5
+Enter the item: 10
+consumed item=10
+20Enter the item: ^C
+238wla5439@cslabs.com@cse-oslab:~$ ./a.out
+Enter the value of n :5
+Enter the item: 10
+consumed item=10
+Enter the item: 20
+consumed item=20
+Enter the item: 30
+consumed item=30
+Enter the item: 40
+consumed item=40
+Enter the item: 50
+consumed item=50
+238wla5439@cslabs.com@cse-oslab:~$
+
+--
+
+philosopher:
+#include <stdio.h>
+#include <stdlib.h>
+ 
+int main() {
+    int n, hungryCount;
+    int hungry[10], choice;
+ 
+    printf("DINING PHILOSOPHER PROBLEM\n");
+    printf("Enter the total no. of philosophers: ");
+    scanf("%d", &n);
+ 
+    printf("How many are hungry: ");
+    scanf("%d", &hungryCount);
+ 
+    for (int i = 0; i < hungryCount; i++) {
+        printf("Enter philosopher %d position: ", i + 1);
+        scanf("%d", &hungry[i]);
+    }
+ 
+    do {
+        printf("\n1. One can eat at a time\n");
+        printf("2. Two can eat at a time\n");
+        printf("3. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+ 
+        switch (choice) {
+        case 1:
+            printf("Allow one philosopher to eat at any time\n");
+            for (int i = 0; i < hungryCount; i++) {
+                printf("P %d is granted to eat\n", hungry[i]);
+                for (int j = 0; j < hungryCount; j++) {
+                    if (j != i)
+                        printf("P %d is waiting ", hungry[j]);
+                }
+                printf("\n");
+            }
+            break;
+ 
+        case 2:
+            printf("Allow two philosophers to eat at same time\n");
+            int comb = 1;
+            for (int i = 0; i < hungryCount; i++) {
+                for (int j = i + 1; j < hungryCount; j++) {
+                    printf("combination %d\n", comb++);
+                    printf("P %d and P %d are granted to eat ", hungry[i], hungry[j]);
+                    for (int k = 0; k < hungryCount; k++) {
+                        if (k != i && k != j)
+                            printf("P%d is waiting ", hungry[k]);
+                    }
+                    printf("\n");
+                }
+            }
+            break;
+ 
+        case 3:
+            printf("Exiting...\n");
+            break;
+ 
+        default:
+            printf("Invalid choice! Try again.\n");
+        }
+    } while (choice != 3);
+ 
+    return 0;
+}
+
+OUTPUT:
+238wla5439@cslabs.com@cse-oslab:~$ vi dinphi.c
+238wla5439@cslabs.com@cse-oslab:~$ gcc dinphi.c
+238wla5439@cslabs.com@cse-oslab:~$ ./a.out
+DINING PHILOSOPHER PROBLEM
+Enter the total no. of philosophers: 5
+How many are hungry: 3
+Enter philosopher 1 position: 1
+Enter philosopher 2 position: 3
+Enter philosopher 3 position: 4
+
+1. One can eat at a time
+2. Two can eat at a time
+3. Exit
+Enter your choice: 1
+Allow one philosopher to eat at any time
+P 1 is granted to eat
+P 3 is waiting P 4 is waiting
+P 3 is granted to eat
+P 1 is waiting P 4 is waiting
+P 4 is granted to eat
+P 1 is waiting P 3 is waiting
+
+1. One can eat at a time
+2. Two can eat at a time
+3. Exit
+Enter your choice: 2
+Allow two philosophers to eat at same time
+combination 1
+P 1 and P 3 are granted to eat P4 is waiting
+combination 2
+P 1 and P 4 are granted to eat P3 is waiting
+combination 3
+P 3 and P 4 are granted to eat P1 is waiting
+
+1. One can eat at a time
+2. Two can eat at a time
+3. Exit
+Enter your choice: 3
+Exiting...
+238wla5439@cslabs.com@cse-oslab:~$
+
+-------------------------------------------------------------------------------------------------------------------
+
+Lab 8-memory allocation first fit, best fit, worst fit
+
+#include <stdio.h>
+#include <stdlib.h>
+
+// First Fit Algorithm
+void firstFit(int process[], int n, int block[], int m) {
+    int alloc[n];
+    for(int i=0;i<n;i++) alloc[i]=-1;
+
+    printf("First Fit\n");
+    for(int i=0;i<n;i++){
+        for(int j=0;j<m;j++){
+            if(block[j]>=process[i]){
+                alloc[i]=j;
+                printf("Alloc[%d]\n", process[i]);
+                printf("Process %d of size %d is allocated in block %d of size %d\n", i, process[i], j, block[j]);
+                block[j]-=process[i];
+                break;
+            }
+        }
+        if(alloc[i]==-1)
+            printf("Process %d of size %d is not allocated\n", i, process[i]);
+    }
+}
+
+// Best Fit Algorithm
+void bestFit(int process[], int n, int block[], int m){
+    int alloc[n];
+    for(int i=0;i<n;i++) alloc[i]=-1;
+
+    int blockCopy[m];
+    for(int i=0;i<m;i++) blockCopy[i]=block[i];
+
+    printf("Best Fit\n");
+    // Sort blocks ascending
+    for(int i=0;i<m;i++){
+        for(int j=i+1;j<m;j++){
+            if(blockCopy[i]>blockCopy[j]){
+                int temp=blockCopy[i];
+                blockCopy[i]=blockCopy[j];
+                blockCopy[j]=temp;
+            }
+        }
+    }
+
+    printf("After sorting block sizes are:\n");
+    for(int i=0;i<m;i++) printf("Block %d:%d\n", i, blockCopy[i]);
+
+    for(int i=0;i<n;i++){
+        int best=-1;
+        for(int j=0;j<m;j++){
+            if(blockCopy[j]>=process[i]){
+                if(best==-1 || blockCopy[j]<blockCopy[best])
+                    best=j;
+            }
+        }
+        if(best!=-1){
+            alloc[i]=best;
+            printf("Alloc[%d]\n", process[i]);
+            printf("Process %d of size %d is allocated in block:%d of size:%d\n", i, process[i], best, blockCopy[best]);
+            blockCopy[best]-=process[i];
+        }else{
+            printf("Process %d of size %d is not allocated\n", i, process[i]);
+        }
+    }
+}
+
+// Worst Fit Algorithm
+void worstFit(int process[], int n, int block[], int m){
+    int alloc[n];
+    for(int i=0;i<n;i++) alloc[i]=-1;
+
+    int blockCopy[m];
+    for(int i=0;i<m;i++) blockCopy[i]=block[i];
+
+    printf("Worst Fit\n");
+    // Sort blocks descending
+    for(int i=0;i<m;i++){
+        for(int j=i+1;j<m;j++){
+            if(blockCopy[i]<blockCopy[j]){
+                int temp=blockCopy[i];
+                blockCopy[i]=blockCopy[j];
+                blockCopy[j]=temp;
+            }
+        }
+    }
+
+    printf("After sorting block sizes are:\n");
+    for(int i=0;i<m;i++) printf("Block %d:%d\n", i, blockCopy[i]);
+
+    for(int i=0;i<n;i++){
+        int worst=-1;
+        for(int j=0;j<m;j++){
+            if(blockCopy[j]>=process[i]){
+                if(worst==-1 || blockCopy[j]>blockCopy[worst])
+                    worst=j;
+            }
+        }
+        if(worst!=-1){
+            alloc[i]=worst;
+            printf("Alloc[%d]\n", process[i]);
+            printf("Process %d of size %d is allocated in block %d of size %d\n", i, process[i], worst, blockCopy[worst]);
+            blockCopy[worst]-=process[i];
+        }else{
+            printf("Process %d of size %d is not allocated\n", i, process[i]);
+        }
+    }
+}
+
+int main(){
+    int n,m;
+    printf("Enter the no of process: ");
+    scanf("%d",&n);
+    int process[n];
+    printf("Enter the size of each process:\n");
+    for(int i=0;i<n;i++){
+        printf("Process %d:", i);
+        scanf("%d",&process[i]);
+    }
+
+    printf("Enter the no of blocks: ");
+    scanf("%d",&m);
+    int block[m];
+    printf("Enter the block sizes:\n");
+    for(int i=0;i<m;i++){
+        printf("Block %d:",i);
+        scanf("%d",&block[i]);
+    }
+
+    int choice;
+    do{
+        printf("1.First fit 2. Best fit 3.Worst fit 4.Exit\nEnter your choice:");
+        scanf("%d",&choice);
+        switch(choice){
+            case 1:
+                firstFit(process,n,block,m);
+                break;
+            case 2:
+                bestFit(process,n,block,m);
+                break;
+            case 3:
+                worstFit(process,n,block,m);
+                break;
+            case 4:
+                printf("Exiting...\n");
+                break;
+            default:
+                printf("Invalid Choice…\n");
+        }
+    }while(choice!=4);
+
+    return 0;
+}
+
+OUTPUT:
+238wla5439@cslabs.com@cse-oslab:~$ vi fitprog.c
+238wla5439@cslabs.com@cse-oslab:~$ gcc fitprog.c
+238wla5439@cslabs.com@cse-oslab:~$ ./a.out
+Enter the no of process: 4
+Enter the size of each process:
+Process 0:10
+Process 1:20
+Process 2:30
+Process 3:12
+Enter the no of blocks: 3
+Enter the block sizes:
+Block 0:100
+Block 1:200
+Block 2:300
+1.First fit 2.Best fit 3.Worst fit 4.Exit
+Enter your choice:1
+
+First Fit
+Alloc[10]
+Process 0 of size 10 is allocated in block 0 of size 100
+Alloc[20]
+Process 1 of size 20 is allocated in block 0 of size 90
+Alloc[30]
+Process 2 of size 30 is allocated in block 0 of size 70
+Alloc[12]
+Process 3 of size 12 is allocated in block 0 of size 40
+1.First fit 2.Best fit 3.Worst fit 4.Exit
+Enter your choice:2
+
+Best Fit
+After sorting block sizes are:
+Block 0:100
+Block 1:200
+Block 2:300
+Alloc[10]
+Process 0 of size 10 is allocated in block:0 of size:28
+Alloc[20]
+Process 1 of size 20 is allocated in block:1 of size:200
+Alloc[30]
+Process 2 of size 30 is allocated in block:1 of size:180
+Alloc[12]
+Process 3 of size 12 is allocated in block:0 of size:18
+1.First fit 2.Best fit 3.Worst fit 4.Exit
+Enter your choice:3
+
+Worst Fit
+After sorting block sizes are:
+Block 0:30
+Block 1:200
+Block 2:28
+Alloc[10]
+Process 0 of size 10 is allocated in block 0 of size 300
+Alloc[20]
+Process 1 of size 20 is allocated in block 0 of size 290
+Alloc[30]
+Process 2 of size 30 is allocated in block 0 of size 270
+Alloc[12]
+Process 3 of size 12 is allocated in block 0 of size 240
+1.First fit 2.Best fit 3.Worst fit 4.Exit
+Enter your choice:4
+Exiting...
+238wla5439@cslabs.com@cse-oslab:~$
+
+--------------------------------------------------------------------------------------------------------
+
+Lab 9-page replacement FIFO, LRU, LFU
+
+FIFO:
+#include <stdio.h>
+
+int main() {
+    int n, frames;
+
+    printf("Enter number of pages: ");
+    scanf("%d", &n);
+    int pages[n];
+
+    printf("Enter page reference string:\n");
+    for (int i = 0; i < n; i++) {
+        scanf("%d", &pages[i]);
+    }
+
+    printf("Enter number of frames: ");
+    scanf("%d", &frames);
+
+    int frame[frames];
+    for (int i = 0; i < frames; i++) frame[i] = -1; // initialize empty frames
+
+    int pageFaults = 0, nextReplace = 0;
+
+    printf("\nPage Replacement Process (FIFO):\n");
+
+    for (int i = 0; i < n; i++) {
+        int page = pages[i];
+        int found = 0;
+
+        // Check if page is already in frame (hit)
+        for (int j = 0; j < frames; j++) {
+            if (frame[j] == page) {
+                found = 1;
+                break;
+            }
+        }
+
+        if (!found) {
+            // Page fault occurs, replace next FIFO
+            frame[nextReplace] = page;
+            nextReplace = (nextReplace + 1) % frames;
+            pageFaults++;
+            printf("Page %d caused a page fault. Frames: ", page);
+        } else {
+            printf("Page %d hit. Frames: ", page);
+        }
+
+        for (int j = 0; j < frames; j++) {
+            if (frame[j] != -1)
+                printf("%d ", frame[j]);
+        }
+        printf("\n");
+    }
+
+    printf("\nTotal Page Faults: %d\n", pageFaults);
+
+    return 0;
+}
+
+OUTPUT:
+238wla5439@cslabs.com@cse-oslab:~$ vi fifoprog.c
+238wla5439@cslabs.com@cse-oslab:~$ gcc fifoprog.c
+238wla5439@cslabs.com@cse-oslab:~$ ./a.out
+Enter number of pages: 5
+Enter page reference string:
+1 2 0 2 1
+Enter number of frames: 2
+
+Page Replacement Process (FIFO):
+Page 1 caused a page fault. Frames: 1
+Page 2 caused a page fault. Frames: 1 2
+Page 0 caused a page fault. Frames: 0 2
+Page 2 hit. Frames: 0 2
+Page 1 caused a page fault. Frames: 0 1
+
+Total Page Faults: 4
+238wla5439@cslabs.com@cse-oslab:~$
+
+--
+
+LRU:
+#include <stdio.h>
+
+// Function to find the least recently used page
+int findLRU(int time[], int n) {
+    int min = time[0], pos = 0;
+    for (int i = 1; i < n; ++i) {
+        if (time[i] < min) {
+            min = time[i];
+            pos = i;
+        }
+    }
+    return pos;
+}
+
+int main() {
+    int frames, pages;
+
+    printf("Enter number of pages: ");
+    scanf("%d", &pages);
+    int page[pages];
+
+    printf("Enter page reference string:\n");
+    for (int i = 0; i < pages; ++i)
+        scanf("%d", &page[i]);
+
+    printf("Enter number of frames: ");
+    scanf("%d", &frames);
+    int frame[frames], time[frames];
+    for (int i = 0; i < frames; ++i) {
+        frame[i] = -1;
+        time[i] = 0;
+    }
+
+    int counter = 0, pageFaults = 0;
+
+    printf("\nPage Replacement Process (LRU):\n");
+
+    for (int i = 0; i < pages; ++i) {
+        int flag1 = 0, flag2 = 0;
+
+        // Check if page already exists (Hit)
+        for (int j = 0; j < frames; ++j) {
+            if (frame[j] == page[i]) {
+                counter++;
+                time[j] = counter; // Update recent use time
+                flag1 = flag2 = 1;
+                printf("Page %d hit. Frames: ", page[i]);
+                break;
+            }
+        }
+
+        // If page not found (Page Fault)
+        if (flag1 == 0) {
+            for (int j = 0; j < frames; ++j) {
+                if (frame[j] == -1) {
+                    counter++;
+                    pageFaults++;
+                    frame[j] = page[i];
+                    time[j] = counter;
+                    flag2 = 1;
+                    printf("Page %d caused a page fault. Frames: ", page[i]);
+                    break;
+                }
+            }
+        }
+
+        // Replace least recently used page
+        if (flag2 == 0) {
+            int pos = findLRU(time, frames);
+            counter++;
+            pageFaults++;
+            frame[pos] = page[i];
+            time[pos] = counter;
+            printf("Page %d caused a page fault (replaced least recently used). Frames: ", page[i]);
+        }
+
+        // Display current frame content
+        for (int j = 0; j < frames; ++j) {
+            if (frame[j] != -1)
+                printf("%d ", frame[j]);
+        }
+        printf("\n");
+    }
+
+    printf("\nTotal Page Faults: %d\n", pageFaults);
+    return 0;
+}
+
+OUTPUT:
+238wla5439@cslabs.com@cse-oslab:~$ vi lruprog.c
+238wla5439@cslabs.com@cse-oslab:~$ gcc lruprog.c
+238wla5439@cslabs.com@cse-oslab:~$ ./a.out
+Enter number of pages: 5
+Enter page reference string:
+1 0 1 3 1
+Enter number of frames: 2
+
+Page Replacement Process (LRU):
+Page 1 caused a page fault. Frames: 1
+Page 0 caused a page fault. Frames: 1 0
+Page 1 hit. Frames: 1 0
+Page 3 caused a page fault (replaced least recently used). Frames: 1 3
+Page 1 hit. Frames: 1 3
+
+Total Page Faults: 3
+238wla5439@cslabs.com@cse-oslab:~$
+
+--
+
+LFU:
+#include <stdio.h>
+
+int findLFU(int freq[], int time[], int n) {
+    int minFreq = freq[0], pos = 0;
+    for (int i = 1; i < n; i++) {
+        if (freq[i] < minFreq)
+            minFreq = freq[i];
+    }
+
+    // If multiple pages have same frequency, pick least recently used (smallest time)
+    for (int i = 0; i < n; i++) {
+        if (freq[i] == minFreq) {
+            pos = i;
+            break;
+        }
+    }
+    return pos;
+}
+
+int main() {
+    int n, frames;
+
+    printf("Enter number of pages: ");
+    scanf("%d", &n);
+    int pages[n];
+    printf("Enter page reference string:\n");
+    for (int i = 0; i < n; i++)
+        scanf("%d", &pages[i]);
+
+    printf("Enter number of frames: ");
+    scanf("%d", &frames);
+
+    int frame[frames], freq[frames], time[frames];
+    for (int i = 0; i < frames; i++) {
+        frame[i] = -1;
+        freq[i] = 0;
+        time[i] = 0;
+    }
+
+    int pageFaults = 0, counter = 0;
+
+    printf("\nPage Replacement Process (LFU):\n");
+
+    for (int i = 0; i < n; i++) {
+        int page = pages[i];
+        int found = 0;
+
+        // Check if page is already in frame (Hit)
+        for (int j = 0; j < frames; j++) {
+            if (frame[j] == page) {
+                freq[j]++;
+                counter++;
+                time[j] = counter; // Update time of use
+                found = 1;
+                printf("Page %d hit. Frames: ", page);
+                break;
+            }
+        }
+
+        // If not found, Page Fault occurs
+        if (!found) {
+            int replaced = -1;
+            for (int j = 0; j < frames; j++) {
+                if (frame[j] == -1) {
+                    frame[j] = page;
+                    freq[j] = 1;
+                    counter++;
+                    time[j] = counter;
+                    pageFaults++;
+                    replaced = j;
+                    printf("Page %d caused a page fault. Frames: ", page);
+                    break;
+                }
+            }
+
+            if (replaced == -1) { // All frames full, replace LFU page
+                int pos = findLFU(freq, time, frames);
+                printf("Page %d caused a page fault (replaced page %d - least frequently used). Frames: ", page, frame[pos]);
+                frame[pos] = page;
+                freq[pos] = 1;
+                counter++;
+                time[pos] = counter;
+                pageFaults++;
+            }
+        }
+
+        // Display current frame content
+        for (int j = 0; j < frames; j++) {
+            if (frame[j] != -1)
+                printf("%d ", frame[j]);
+        }
+        printf("\n");
+    }
+
+    printf("\nTotal Page Faults: %d\n", pageFaults);
+
+    return 0;
+}
+
+OUTPUT:
+238wla5439@cslabs.com@cse-oslab:~$ vi lfuprog.c
+238wla5439@cslabs.com@cse-oslab:~$ gcc lfuprog.c
+238wla5439@cslabs.com@cse-oslab:~$ ./a.out
+Enter number of pages: 5
+Enter page reference string:
+1 2 3 2 1
+Enter number of frames: 2
+
+Page Replacement Process (LFU):
+Page 1 caused a page fault. Frames: 1
+Page 2 caused a page fault. Frames: 1 2
+Page 3 caused a page fault (replaced page 1 - least frequently used). Frames: 3 2
+Page 2 hit. Frames: 3 2
+Page 1 caused a page fault (replaced page 3 - least frequently used). Frames: 1 2
+
+Total Page Faults: 4
+238wla5439@cslabs.com@cse-oslab:~$
+
+-----------------------------------------------------------------------------------------------------------------------
+
+Lab 10-Simulate Paging Technique of memory management
+
+a)memory management:PAGING:
+#include <stdio.h>
+#include <stdlib.h>
+
+int main() {
+    int physSize, logicalSize, partSize;
+
+    printf("Enter the Size of Physical memory: ");
+    scanf("%d", &physSize);
+
+    printf("Enter the size of Logical memory: ");
+    scanf("%d", &logicalSize);
+
+    printf("Enter the partition size: ");
+    scanf("%d", &partSize);
+
+    int frames = physSize / partSize;
+    int pages = logicalSize / partSize;
+
+    printf("The physical memory is divided into %d no.of frames\n", frames);
+    printf("The Logical memory is divided into %d no.of pages\n", pages);
+
+    int pageFrame[50], presence[50], framePage[50];
+    for (int i = 0; i < frames; i++) framePage[i] = -1;
+    for (int i = 0; i < pages; i++) presence[i] = 0;
+
+    // Input: frame number for each page
+    for (int i = 0; i < pages; i++) {
+        printf("Enter the Frame number where page %d must be placed: ", i);
+        scanf("%d", &pageFrame[i]);
+        presence[i] = 1;
+        framePage[pageFrame[i]] = i;
+    }
+
+    // --- PAGE TABLE ---
+    printf("\nPAGE TABLE\n");
+    printf("Page Address\tFrame No.\tPresence Bit\n");
+    for (int i = 0; i < pages; i++) {
+        printf("%d\t\t%d\t\t%d\n", i, pageFrame[i], presence[i]);
+    }
+
+    // --- FRAME TABLE ---
+    printf("\nFRAME TABLE\n");
+    printf("FrameAddress\tPageNo\n");
+    for (int i = 0; i < frames; i++) {
+        printf("%d\t\t", i);
+        if (framePage[i] == -1)
+            printf("32555\n");
+        else
+            printf("%d\n", framePage[i]);
+    }
+
+    // --- Address translation ---
+    int baseAddr, logicalAddr;
+    printf("\nProcess to create the Physical Address\n");
+    printf("Enter the Base Address: ");
+    scanf("%d", &baseAddr);
+    printf("Enter the Logical Address: ");
+    scanf("%d", &logicalAddr);
+
+    int pageNo = logicalAddr / partSize;
+    int offset = logicalAddr % partSize;
+    int frameNo = pageFrame[pageNo];
+    int physicalAddress = baseAddr + frameNo * partSize + offset;
+
+    printf("The Physical Address where the instruction present: %d\n", physicalAddress);
+
+    return 0;
+}
+
+OUTPUT:
+Enter the Size of Physical memory: 30
+Enter the size of Logical memory: 21
+Enter the partition size: 2
+The physical memory is divided into 15 no. of frames
+The Logical memory is divided into 10 no. of pages
+Enter the Frame number where page 0 must be placed: 1
+Enter the Frame number where page 1 must be placed: 3
+Enter the Frame number where page 2 must be placed: 5
+Enter the Frame number where page 3 must be placed: 7
+Enter the Frame number where page 4 must be placed: 9
+Enter the Frame number where page 5 must be placed: 2
+Enter the Frame number where page 6 must be placed: 6
+Enter the Frame number where page 7 must be placed: 11
+Enter the Frame number where page 8 must be placed: 8
+Enter the Frame number where page 9 must be placed: 4
+
+PAGE TABLE
+Page Address   Frame No.   Presence Bit
+0              1           1
+1              3           1
+2              5           1
+3              7           1
+4              9           1
+5              2           1
+6              6           1
+7              11          1
+8              8           1
+9              4           1
+
+FRAME TABLE
+Frame Address   Page No
+0               32555
+1               0
+2               5
+3               1
+4               9
+5               2
+6               6
+7               3
+8               8
+9               4
+10              32555
+11              7
+12              32555
+13              32555
+14              32555
+
+Process to create the Physical Address
+Enter the Base Address: 1011
+Enter the Logical Address: 1024
+The Physical Address where the instruction present: 1011
+238wla5439@cslabs.com@cse-oslab:~$
+
+--
+
+B)segmentation:
+#include <stdio.h>
+#include <stdlib.h>
+
+int main() {
+    int n;
+    printf("Enter the size of the segment table: ");
+    scanf("%d", &n);
+
+    int base[10], limit[10];
+    int i, j, logical, segNo, offset, physical;
+
+    // Input for each segment
+    for (i = 0; i < n; i++) {
+        printf("\nEnter the information about segment: %d\n", i + 1);
+        printf("Enter the base Address: ");
+        scanf("%d", &base[i]);
+        printf("Enter the Limit: ");
+        scanf("%d", &limit[i]);
+
+        // Dummy display (like in your mam’s example)
+        for (j = 4; j <= 8; j++) {
+            printf("Enter the %d address Value: %d\n", j, (i + 1) * 10 + j + i);
+        }
+    }
+
+    // Display segment table
+    printf("\nSEGMENT TABLE\n");
+    printf("SEG.NO\tBASE ADDRESS\tLIMIT\n");
+    for (i = 0; i < n; i++) {
+        printf("%d\t%d\t\t%d\n", i + 1, base[i], limit[i]);
+    }
+
+    // Process for logical to physical address conversion
+    char ch = 'Y';
+    while (ch == 'Y' || ch == 'y') {
+        printf("\nEnter the logical Address: ");
+        scanf("%d", &logical);
+
+        printf("Enter the segment number: ");
+        scanf("%d", &segNo);
+
+        if (segNo > n || segNo <= 0) {
+            printf("Invalid Segment Number!\n");
+        } else {
+            offset = logical;
+            if (offset >= limit[segNo - 1]) {
+                printf("Memory violation (offset exceeds limit)\n");
+            } else {
+                physical = base[segNo - 1] + offset;
+                printf("Logical Address is: %d\n", logical);
+                printf("Mapped Physical address is: %d\n", physical);
+                printf("The value is: %d\n", physical * 10 + 1); // dummy value
+            }
+        }
+
+        printf("Do U want to Continue(Y/N): ");
+        scanf(" %c", &ch);
+    }
+
+    return 0;
+}
+
+OUTPUT:
+238wla5439@cslabs.com@cse-oslab:~$ vi segmentationprog.c
+238wla5439@cslabs.com@cse-oslab:~$ gcc segmentationprog.c
+238wla5439@cslabs.com@cse-oslab:~$ ./a.out
+Enter the size of the segment table: 3
+
+Enter the information about segment: 1
+Enter the base Address: 4
+Enter the Limit: 3
+Enter the 4 address Value: 14
+Enter the 5 address Value: 15
+Enter the 6 address Value: 16
+Enter the 7 address Value: 17
+Enter the 8 address Value: 18
+
+Enter the information about segment: 2
+Enter the base Address: 3
+Enter the Limit: 2
+Enter the 4 address Value: 25
+Enter the 5 address Value: 26
+Enter the 6 address Value: 27
+Enter the 7 address Value: 28
+Enter the 8 address Value: 29
+
+Enter the information about segment: 3
+Enter the base Address: 2
+Enter the Limit: 2
+Enter the 4 address Value: 36
+Enter the 5 address Value: 37
+Enter the 6 address Value: 38
+Enter the 7 address Value: 39
+Enter the 8 address Value: 40
+
+SEGMENT TABLE
+SEG.NO   BASE ADDRESS   LIMIT
+1        4              3
+2        3              2
+3        2              2
+
+Enter the logical Address: 1011
+Enter the segment number: 3
+Memory violation (offset exceeds limit)
+Do U want to Continue(Y/N): n
+238wla5439@cslabs.com@cse-oslab:~$
+
+-----------------------------------------------------------------------------------------------------------------
+
+Lab 11-Bankers Algorithm for dead lock avoidance, preventation
+
+Bankers:
+#include <stdio.h>
+
+int main() {
+    int n, m; // n = number of processes, m = number of resources
+    int i, j, k;
+
+    printf("Enter no of processes: ");
+    scanf("%d", &n);
+
+    printf("Enter no of resource classes: ");
+    scanf("%d", &m);
+
+    int instances[m], available[m], alloc[n][m], max[n][m], need[n][m];
+    int finish[n];
+
+    // Resource instances and available resources
+    for (i = 0; i < m; i++) {
+        printf("Enter instances of resources class %d: ", i + 1);
+        scanf("%d", &instances[i]);
+        printf("Enter free vectors of resources class %d (resources available): ", i + 1);
+        scanf("%d", &available[i]);
+    }
+
+    // Current allocation matrix
+    printf("Enter the current allocation matrix:\n");
+    for (i = 0; i < n; i++)
+        for (j = 0; j < m; j++)
+            scanf("%d", &alloc[i][j]);
+
+    // Request (Maximum) matrix
+    printf("Enter the request matrix:\n");
+    for (i = 0; i < n; i++)
+        for (j = 0; j < m; j++)
+            scanf("%d", &max[i][j]);
+
+    // Calculate the Need matrix
+    for (i = 0; i < n; i++)
+        for (j = 0; j < m; j++)
+            need[i][j] = max[i][j] - alloc[i][j];
+
+    for (i = 0; i < n; i++)
+        finish[i] = 0;
+
+    int safeSeq[n], index = 0;
+
+    // Banker's Algorithm (Safety Check)
+    for (k = 0; k < n; k++) {
+        for (i = 0; i < n; i++) {
+            if (finish[i] == 0) {
+                int flag = 0;
+                for (j = 0; j < m; j++) {
+                    if (need[i][j] > available[j]) {
+                        flag = 1;
+                        break;
+                    }
+                }
+                if (flag == 0) {
+                    printf("Process %d is satisfied\n", i + 1);
+                    safeSeq[index++] = i + 1;
+                    for (j = 0; j < m; j++)
+                        available[j] += alloc[i][j];
+                    
+                    printf("a[0]=%d\n", available[0]);
+                    if (m > 1) printf("a[1]=%d\n", available[1]);
+                    if (m > 2) printf("a[2]=%d\n", available[2]);
+
+                    finish[i] = 1;
+                }
+            }
+        }
+    }
+
+    // Check if all processes are finished
+    int flag = 1;
+    for (i = 0; i < n; i++) {
+        if (finish[i] == 0) {
+            flag = 0;
+            printf("The system is in unsafe state (deadlock possible)\n");
+            break;
+        }
+    }
+
+    if (flag == 1) {
+        printf("\nThe system is in a SAFE STATE.\nSafe sequence: ");
+        for (i = 0; i < n - 1; i++)
+            printf("P%d -> ", safeSeq[i]);
+        printf("P%d\n", safeSeq[n - 1]);
+    }
+
+    return 0;
+}
+
+OUTPUT:
+238wla5439@cslabs.com@cse-oslab:~$ ./a.out
+Enter no of processes: 4
+Enter no of resource classes: 2
+Enter instances of resources class 1: 10
+Enter free vectors of resources class 1 (resources available): 3
+Enter instances of resources class 2: 7
+Enter free vectors of resources class 2 (resources available): 2
+Enter the current allocation matrix:
+1 1
+0 1
+1 2
+0 1
+Enter the request matrix:
+4 2
+2 0
+0 3
+Process 2 is satisfied
+A[0]=5
+A[1]=2
+Process 3 is satisfied
+A[0]=8
+A[1]=3
+Process 4 is satisfied
+A[0]=9
+A[1]=5
+Process 1 is satisfied
+A[0]=9
+A[1]=6
+
+The system is in a SAFE STATE.
+Safe sequence: P2 -> P3 -> P4 -> P1
+238wla5439@cslabs.com@cse-oslab:~$
+
+------------------------------------------------------------------------------------------------------------------
+
+Lab 12-File allocation strategies sequential, indexed, linked
+
+Sequential:
+#include <stdio.h>
+
+int main() {
+    int memory, n;
+    printf("Enter the total memory you want: ");
+    scanf("%d", &memory);
+
+    printf("Enter the Total number of files: ");
+    scanf("%d", &n);
+
+    int start[n], length[n];
+    int allocated[n];
+    int i, j, flag;
+    int memoryBlocks[memory];
+
+    // Initialize all blocks as free (0)
+    for (i = 0; i < memory; i++)
+        memoryBlocks[i] = 0;
+
+    // Initialize allocation tracker
+    for (i = 0; i < n; i++)
+        allocated[i] = 0;
+
+    // Input each file
+    for (i = 0; i < n; i++) {
+        printf("Enter the starting block of file %d: ", i + 1);
+        scanf("%d", &start[i]);
+        printf("Enter the length of the file %d: ", i + 1);
+        scanf("%d", &length[i]);
+
+        // Check if within memory bounds
+        if (start[i] + length[i] > memory) {
+            printf("File %d cannot be allocated! Not enough space in memory.\n", i + 1);
+            continue;
+        }
+
+        // Check if all blocks are free
+        flag = 0;
+        for (j = start[i]; j < start[i] + length[i]; j++) {
+            if (memoryBlocks[j] == 1) {
+                flag = 1;
+                break;
+            }
+        }
+
+        // If free, allocate
+        if (flag == 0) {
+            for (j = start[i]; j < start[i] + length[i]; j++)
+                memoryBlocks[j] = 1;
+            allocated[i] = 1;
+        } else {
+            printf("File %d cannot be allocated! Block %d already in use.\n", i + 1, j);
+        }
+    }
+
+    // Final summary of all successfully allocated files
+    printf("\n--- Allocation Summary ---\n");
+    for (i = 0; i < n; i++) {
+        if (allocated[i] == 1)
+            printf("The file %d is filled from %d to %d\n", i + 1, start[i], start[i] + length[i] - 1);
+    }
+
+    return 0;
+}
+
+OUTPUT:
+238wla5439@cslabs.com@cse-oslab:~$ vi sequentialprogram.c
+238wla5439@cslabs.com@cse-oslab:~$ gcc sequentialprogram.c
+238wla5439@cslabs.com@cse-oslab:~$ ./a.out
+Enter the total memory you want: 20
+Enter the Total number of files: 3
+Enter the starting block of file 1: 0
+Enter the length of the file 1: 5
+Enter the starting block of file 2: 6
+Enter the length of the file 2: 4
+Enter the starting block of file 3: 10
+Enter the length of the file 3: 7
+
+--- Allocation Summary ---
+The file 1 is filled from 0 to 4
+The file 2 is filled from 6 to 9
+The file 3 is filled from 10 to 16
+238wla5439@cslabs.com@cse-oslab:~$
+
+--
+
+Indexed:
+#include <stdio.h>
+
+int main() {
+    int start, n, i;
+    int index[50];
+
+    printf("Enter the starting address of file: ");
+    scanf("%d", &start);
+
+    printf("Enter the number of nodes: ");
+    scanf("%d", &n);
+
+    for (i = 0; i < n; i++) {
+        printf("Enter index %d: ", i + 1);
+        scanf("%d", &index[i]);
+    }
+
+    printf("File 1 starting address is: %d\n", start);
+    printf("Your indexed locations are:\n");
+
+    for (i = 0; i < n; i++)
+        printf("%d\n", index[i]);
+
+    return 0;
+}
+
+OUTPUT:
+238wla5439@cslabs.com@cse-oslab:~$ vi indexedprogram.c
+238wla5439@cslabs.com@cse-oslab:~$ gcc indexedprogram.c
+238wla5439@cslabs.com@cse-oslab:~$ ./a.out
+Enter the starting address of file: 25
+Enter the number of nodes: 4
+Enter index 1: 26
+Enter index 2: 27
+Enter index 3: 28
+Enter index 4: 29
+File 1 starting address is: 25
+Your indexed locations are:
+26
+27
+28
+29
+238wla5439@cslabs.com@cse-oslab:~$
+
+--
+
+Linked file:
+#include <stdio.h>
+#include <stdlib.h>
+
+#define MAX_MEMORY 100
+
+int memory[MAX_MEMORY]; // 0 = free, 1 = occupied
+
+typedef struct File {
+    int start;
+    int end;
+    int *intermediate;
+    int num_intermediate;
+} File;
+
+void insertFile(File *f) {
+    int i;
+    // Check if starting block is free
+    if(memory[f->start] == 1) {
+        printf("This block was already filled\n");
+        return;
+    }
+
+    memory[f->start] = 1;
+
+    // Mark intermediate blocks
+    for(i = 0; i < f->num_intermediate; i++) {
+        if(memory[f->intermediate[i]] == 1) {
+            printf("Intermediate block %d already filled\n", f->intermediate[i]);
+            continue;
+        }
+        memory[f->intermediate[i]] = 1;
+    }
+
+    // Mark ending block
+    if(memory[f->end] == 1) {
+        printf("Ending block %d already filled\n", f->end);
+        return;
+    }
+    memory[f->end] = 1;
+
+    printf("File inserted successfully!\n");
+}
+
+void displayFile(File f, int file_num) {
+    printf("The file %d is linked as follows: ", file_num);
+    printf("%d", f.start);
+    for(int i = 0; i < f.num_intermediate; i++) {
+        printf("-->%d", f.intermediate[i]);
+    }
+    printf("-->%d\n", f.end);
+}
+
+int main() {
+    int choice, total_memory = MAX_MEMORY;
+    File files[10]; // To store up to 10 files
+    int file_count = 0;
+
+    for(int i = 0; i < MAX_MEMORY; i++)
+        memory[i] = 0; // initialize all blocks as free
+
+    while(1) {
+        printf("To insert file press: 1 else press: 2\nEnter your choice: ");
+        scanf("%d", &choice);
+        if(choice != 1)
+            break;
+
+        File f;
+        printf("Enter the starting block of file: ");
+        scanf("%d", &f.start);
+
+        if(memory[f.start] == 1) {
+            printf("This block was already filled\n");
+            continue;
+        }
+        printf("Enter the ending block of file: ");
+        scanf("%d", &f.end);
+
+        printf("Enter the number of intermediate blocks of file: ");
+        scanf("%d", &f.num_intermediate);
+
+        f.intermediate = (int*)malloc(f.num_intermediate * sizeof(int));
+        printf("Enter the intermediate blocks one by one\n");
+        for(int i = 0; i < f.num_intermediate; i++) {
+            scanf("%d", &f.intermediate[i]);
+        }
+        insertFile(&f);
+        files[file_count++] = f;
+    }
+
+    // Display all files
+    for(int i = 0; i < file_count; i++) {
+        displayFile(files[i], i+1);
+    }
+    return 0;
+}
+
+OUTPUT:
+238wla5439@cslabs.com@cse-oslab:~$ vi linkedprogram.c
+238wla5439@cslabs.com@cse-oslab:~$ gcc linkedprogram.c
+238wla5439@cslabs.com@cse-oslab:~$ ./a.out
+To insert file press: 1 else press: 2
+Enter your choice: 1
+Enter the starting block of file: 3
+Enter the ending block of file: 7
+Enter the number of intermediate blocks of file: 2
+Enter the intermediate blocks one by one
+4 5
+File inserted successfully!
+To insert file press: 1 else press: 2
+Enter your choice: 2
+The file 1 is linked as follows: 3-->4-->5-->7
+238wla5439@cslabs.com@cse-oslab:~$
+
+

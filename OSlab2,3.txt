@@ -1,0 +1,349 @@
+Lab 2-UNIX fork, exec, getpid, exit, wait, close, stat, opendir, readdir
+
+FORK:
+#include<stdio.h>
+#include<unistd.h>
+int main(){
+pid_t p;
+p=fork();
+if (p<0)
+{
+printf("Fork Failed\n");
+return 1;
+}else if(p==0)
+{
+printf("This is the child process\n");
+printf("Child pid:%d\n",getpid());
+printf("Parent pid(from child):%d\n",getppid());
+}
+else
+{
+printf("This is the parent process\n");
+printf("Parent pid:%d\n",getpid());
+printf("Child pid(from parent):%d\n",p);
+}
+return 0;
+}
+
+OUTPUT:
+238wla5439@cslabs.com@cse-oslab:~$ vi fork.c
+238wla5439@cslabs.com@cse-oslab:~$ vi forkprogram.c
+238wla5439@cslabs.com@cse-oslab:~$ gcc forkprogram.c
+238wla5439@cslabs.com@cse-oslab:~$ ./a.out
+This is the parent process
+Parent pid:38956
+Child pid(from parent):38957
+This is the child process
+Child pid:38957
+Parent pid(from child):38956
+238wla5439@cslabs.com@cse-oslab:~$
+
+--
+
+EXEC:
+#include<stdio.h>
+#include<unistd.h>
+int main(){
+printf("Before execution:current process id:%d\n",getpid());
+execlp("/bin/date","date",NULL);
+printf("execlp failed");
+return 0;
+}
+
+OUTPUT:
+238wla5439@cslabs.com@cse-oslab:~$ gcc execprogram.c
+238wla5439@cslabs.com@cse-oslab:~$ ./a.out
+Before execution: current process id:39047
+Wed Nov 12 06:38:16 AM UTC 2025
+238wla5439@cslabs.com@cse-oslab:~$
+
+--
+
+GETPID
+#include <stdio.h>
+#include <unistd.h>
+ 
+int main() {
+    printf("Process ID: %d\n", getpid());
+    return 0;
+}
+
+OUTPUT:
+238wla5439@cslabs.com@cse-oslab:~$ vi getpidprogram.c
+238wla5439@cslabs.com@cse-oslab:~$ gcc getpidprogram.c
+238wla5439@cslabs.com@cse-oslab:~$ ./a.out
+Process ID: 39054
+238wla5439@cslabs.com@cse-oslab:~$
+
+--
+
+Exit:
+#include <stdio.h>
+#include <stdlib.h>
+ 
+int main() {
+    printf("Exiting the program using exit()...\n");
+    exit(0); // Normal termination
+}
+
+OUTPUT:
+238wla5439@cslabs.com@cse-oslab:~$ vi exitprogram.c
+238wla5439@cslabs.com@cse-oslab:~$ gcc exitprogram.c
+238wla5439@cslabs.com@cse-oslab:~$ ./a.out
+Exiting the program using exit()...
+238wla5439@cslabs.com@cse-oslab:~$
+
+--
+
+WAIT:
+#include<stdio.h>
+#include<unistd.h>
+#include<sys/wait.h>
+int main()
+{
+pid_t p=fork();
+if(p<0)
+{
+printf("Fork failed");
+}
+else if(p==0)
+{
+printf("Child process id:%d\n",getpid());
+}
+else
+{
+wait(NULL);
+printf("Child is from parent:%d\n",p);
+printf("parent process if:%d\n",getpid());
+}
+}
+
+OUTPUT:
+238wla5439@cslabs.com@cse-oslab:~$ vi waitprogram.c
+238wla5439@cslabs.com@cse-oslab:~$ gcc waitprogram.c
+238wla5439@cslabs.com@cse-oslab:~$ ./a.out
+Child process id:39069
+Child is from parent:39069
+parent process id:39068
+238wla5439@cslabs.com@cse-oslab:~$
+
+--
+
+CLOSE:
+#include <stdio.h> 
+#include <fcntl.h> 
+#include <unistd.h>
+int main() { int fd = open("sample.txt", O_CREAT | O_WRONLY, 0644); 
+if (fd < 0) { perror("open"); 
+return 1; 
+} 
+printf("File opened successfully.\n");
+close(fd);
+printf("File closed successfully.\n");
+return 0;
+ 
+}
+
+OUTPUT:
+238wla5439@cslabs.com@cse-oslab:~$ vi closeprogram.c
+238wla5439@cslabs.com@cse-oslab:~$ gcc closeprogram.c
+238wla5439@cslabs.com@cse-oslab:~$ ./a.out
+File opened successfully.
+File closed successfully.
+238wla5439@cslabs.com@cse-oslab:~$
+
+--
+
+STAT:
+#include <stdio.h>
+#include <sys/stat.h>
+ 
+int main() {
+    struct stat info;
+ 
+    if (stat("sample.txt", &info) == 0) {
+        printf("File size: %ld bytes\n", info.st_size);
+    } else {
+        perror("stat");
+    }
+ 
+    return 0;
+}
+
+OUTPUT:
+238wla5439@cslabs.com@cse-oslab:~$ vi hello.txt
+238wla5439@cslabs.com@cse-oslab:~$ vi statprogram.c
+238wla5439@cslabs.com@cse-oslab:~$ gcc statprogram.c
+238wla5439@cslabs.com@cse-oslab:~$ ./a.out
+File size: 14 bytes
+238wla5439@cslabs.com@cse-oslab:~$
+
+--
+
+Open dir:
+#include <stdio.h>
+#include <dirent.h>
+ 
+int main() {
+    DIR *dir = opendir(".");
+    if (dir) {
+        printf("Directory opened successfully.\n");
+        closedir(dir);
+    } else {
+        perror("opendir");
+    }
+    return 0;
+}
+
+OUTPUT:
+238wla5439@cslabs.com@cse-oslab:~$ vi opendirprogram.c
+238wla5439@cslabs.com@cse-oslab:~$ gcc opendirprogram.c
+238wla5439@cslabs.com@cse-oslab:~$ ./a.out
+Directory opened successfully.
+238wla5439@cslabs.com@cse-oslab:~$
+
+--
+
+READ DIR:
+#include <stdio.h>
+#include <dirent.h>
+ 
+int main() {
+    DIR *dir = opendir(".");
+    struct dirent *entry;
+ 
+    if (dir == NULL) {
+        perror("opendir");
+        return 1;
+    }
+ 
+    printf("Files in current directory:\n");
+    while ((entry = readdir(dir)) != NULL) {
+        printf("%s\n", entry->d_name);
+    }
+ 
+    closedir(dir);
+    return 0;
+}
+
+OUTPUT:
+Directory opened successfully.
+238wla5439@cslabs.com@cse-oslab:~$ vi readdirprogram.c
+238wla5439@cslabs.com@cse-oslab:~$ gcc readdirprogram.c
+238wla5439@cslabs.com@cse-oslab:~$ ./a.out
+Files in current directory:
+waitprogram.c
+10-b.c
+ec
+12-b.c
+wait.c
+.bash_history
+dino.c
+12-a.c
+semaphore.c
+.viminfo
+..
+opendirprogram.c
+3-2.c
+sema.c
+8-1.c
+stat
+cp
+3-5
+.local
+8-post.c
+.lesshst
+fcfs.c
+8.c
+3-3.c
+readdirprogram.c
+10-a1.c
+getpidprogram.c
+10-21.c
+
+-------------------------------------------------------
+
+Lab 3-UNIX cp,ls,grep,etc..
+
+cp:
+#include <stdio.h>
+
+int main() {
+    FILE *f1, *f2;
+    char ch;
+    f1 = fopen("source.txt", "r");
+    f2 = fopen("copy.txt", "w");
+
+    while ((ch = fgetc(f1)) != EOF)
+        fputc(ch, f2);
+
+    printf("File copied successfully.\n");
+    fclose(f1);
+    fclose(f2);
+    return 0;
+}
+
+OUTPUT:
+File copied successfully.
+
+--
+
+ls:
+#include <stdio.h>
+#include <dirent.h>
+
+int main() {
+    DIR *d;
+    struct dirent *dir;
+    d = opendir(".");
+    printf("Files in current directory:\n");
+
+    while ((dir = readdir(d)) != NULL)
+        printf("%s\n", dir->d_name);
+
+    closedir(d);
+    return 0;
+}
+
+OUTPUT:
+Files in current directory:
+a.out
+lsprogram.c
+cpprogram.c
+grepprogram.c
+source.txt
+copy.txt
+
+--
+
+grep:
+#include <stdio.h>
+#include <string.h>
+
+int main() {
+    FILE *f;
+    char line[100], word[20];
+    f = fopen("data.txt", "r");
+
+    printf("Enter word to search: ");
+    scanf("%s", word);
+
+    printf("Lines containing '%s':\n", word);
+    while (fgets(line, sizeof(line), f))
+        if (strstr(line, word))
+            printf("%s", line);
+
+    fclose(f);
+    return 0;
+}
+
+OUTPUT:
+AI is the future.
+Data Science is powerful.
+AI helps in automation.
+
+Enter word to search: AI
+Lines containing 'AI':
+AI is the future.
+AI helps in automation.
+
