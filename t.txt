@@ -1,0 +1,754 @@
+Lab-2
+----------------------fork, getpid, getppid------------------------------#include
+#include
+#include
+#include
+int main()
+{
+pid_t pid = fork();
+if(pid < 0)
+{
+fprintf(stderr,"Fork Failed!\n");
+}
+else if(pid == 0)
+{
+printf("\n---Child Process---\n");
+printf("My pid is %d:",getpid());
+printf("\nMy parent pid is %d",getppid());
+}
+else
+{
+printf("\n---Parent Process---\n");
+printf("My pid is %d", getpid());
+printf("\nMy child pid is %d", pid);
+}
+return 0;
+}
+----------------------exit, sleep------------------------------#include
+#include
+#include
+#include
+int main()
+{
+pid_t pid = fork();
+if(pid < 0)
+{
+fprintf(stderr,"\nError occured process not created!\n");
+return 1;
+}
+else if(pid == 0)
+{
+printf("\nChild process is running\n");
+sleep(2);
+printf("\nI am done exiting with code 37.\n");
+exit(37);
+}
+else
+{
+
+printf("\nWaiting for child to finish\n");
+int status;
+wait(&status);
+if(WIFEXITED(status))
+{
+int exit_status = WEXITSTATUS(status);
+printf("\nChild finished and exit with code %d", exit_status);
+printf("\n");
+}
+else
+{
+printf("\nChild exited abnormally!\n");
+}
+}
+}
+----------------------exec------------------------------#include
+#include
+#include
+#include
+#include
+int main()
+{
+pid_t pid = fork();
+if(pid == 0)
+{
+printf("Child: I am the child, now i will become 'ls -l'\n");
+execlp("ls", "ls", "-l", NULL);
+perror("execlp falied");
+}
+else if(pid > 0)
+{
+printf("Parent : Waiting for my child to finish\n");
+wait(NULL);
+printf("Child finished, parent done\n");
+}
+return 0;
+}
+----------------------stat------------------------------#include
+#include
+#include
+#include
+#include
+#include
+#include
+int main(int argc, char *argv[])
+{
+if(argc < 0)
+
+{
+printf("\nEnter the file, current file name is %s", argv[0]);
+return 1;
+}
+struct stat file_stats;
+if(stat(argv[1], &file_stats) < 0)
+{
+perror("\ncould not stat file");
+return 1;
+}
+printf("\n----File Stats----");
+printf("\nFile size is %ld", file_stats.st_size);
+printf("\npermissions %o", file_stats.st_mode & 0777);
+printf("\nLast modified: %s", ctime(&file_stats.st_mtime));
+return 0;
+}
+----------------------opendir, closedir------------------------------#include
+#include
+int main()
+{
+DIR *dir = opendir(".");
+if(dir == NULL)
+{
+perror("Could not open the directory");
+return 1;
+}
+struct dirent *entries;
+while((entries = readdir(dir)) != NULL)
+{
+printf("%s\n",entries->d_name);
+}
+closedir(dir);
+return 0;
+}
+----------------------open, close------------------------------#include
+#include
+#include
+#include
+int main()
+{
+FILE *file1 = fopen("textfile.txt", "w");
+fprintf(file1,"\nHello this the text i written.");
+fclose(file1);
+printf("\nOpening the file....");
+int f = open("textfile.txt", O_RDONLY);
+
+if(f < 0)
+{
+perror("\nError opening file");
+return 1;
+}
+printf("\nFile opened sucessfully file describter is %d", f);
+int cd = close(f);
+if(cd < 0)
+{
+perror("\nError closing the file");
+return 1;
+}
+printf("\nFile closed sucessfully");
+printf("\n");
+return 0;
+}
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------Lab-3
+----------------------ls------------------------------#include
+#include
+int main()
+{
+DIR *dir = opendir(".");
+if(dir == NULL)
+{
+perror("Could not open the directory");
+return 1;
+}
+struct dirent *entries;
+while((entries = readdir(dir)) != NULL)
+{
+printf("%s\n",entries->d_name);
+}
+closedir(dir);
+return 0;
+}
+----------------------grep------------------------------#include
+#include
+#include
+#include
+#define MAX_LINE_LENGTH 1000
+int main(int argc, char *argv[])
+{
+if(argc != 3)
+{
+
+printf("Enter the both files");
+return 1;
+}
+char *pattern = argv[1];
+char *filename = argv[2];
+FILE *fp = fopen(filename, "r");
+if(fp == NULL)
+{
+printf("Error opening file");
+return 1;
+}
+char line[MAX_LINE_LENGTH];
+while(fgets(line, MAX_LINE_LENGTH,fp) != NULL)
+{
+if(strstr(line, pattern) != NULL)
+{
+printf("Line %s", line);
+}
+}
+fclose(fp);
+return 0;
+}
+----------------------cp------------------------------#include
+#include
+#include
+#include
+#define BUFFER_SIZE 1000
+int main(int argc, char *argv[])
+{
+if(argc != 3)
+{
+printf("Enter the both src and dest file");
+return 1;
+}
+char *src_file = argv[1];
+char *dest_file = argv[2];
+int src_fd = open(src_file, O_RDONLY);
+if(src_fd < 0)
+{
+perror("Error opening source file");
+return 1;
+}
+int dest_fd = open(dest_file, O_CREAT | O_WRONLY | O_TRUNC , 0644);
+
+if(dest_fd < 0)
+{
+perror("Error opening destination file");
+close(dest_fd);
+return 1;
+}
+char buffer[BUFFER_SIZE];
+ssize_t bytes_read;
+while((bytes_read = read(src_fd, buffer,BUFFER_SIZE)) > 0)
+{
+if(write(dest_fd, buffer, bytes_read) != bytes_read)
+{
+perror("Error writing to destination file");
+close(src_fd);
+close(dest_fd);
+return 1;
+}
+}
+if(bytes_read < 0)
+{
+perror("Erro reading from source file");
+}
+close(src_fd);
+close(dest_fd);
+printf("File copied sucessfully: %s -> %s", src_file, dest_file);
+return 0;
+}
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------Lab-4
+----------------------fcfs------------------------------#include
+int main()
+{
+int n;
+printf("Enter the no of process:");
+scanf("%d", &n);
+printf("\n");
+int process[n], waiting_time[n], burst_time[n], turn_around_time[n];
+for(int i = 0; i < n; i++)
+{
+printf("Enter the burst time of process p%d: ", i);
+scanf("%d", &burst_time[i]);
+printf("\n");
+}
+
+waiting_time[0] = 0;
+for(int i = 1; i < n; i++)
+{
+waiting_time[i] = waiting_time[i -1] + burst_time[i - 1];
+}
+for(int i = 0; i < n; i++)
+{
+turn_around_time[i] = waiting_time[i] + burst_time[i];
+}
+int total_wt = 0, total_tat = 0;
+printf("Process\tBurst Time\tWaiting Time\tTurn Around Time\n");
+for(int i = 0; i < n; i++)
+{
+total_wt += waiting_time[i];
+total_tat += turn_around_time[i];
+printf("P%d\t\t%d\t\t%d\t\t%d",i, burst_time[i],waiting_time[i], turn_around_time[i]);
+printf("\n");
+}
+printf("Average Waiting Time : %d", total_wt/n);
+printf("\n");
+printf("Average Turn Around Time:%d", total_tat/n);
+printf("\n");
+}
+----------------------sjf------------------------------#include
+int main() {
+int n;
+printf("Enter number of processes: ");
+scanf("%d", &n);
+int processes[n], burst_time[n], waiting_time[n], turnaround_time[n];
+// Input burst times
+printf("Enter burst time for each process:\n");
+for (int i = 0; i < n; i++) {
+printf("P%d: ", i + 1);
+scanf("%d", &burst_time[i]);
+processes[i] = i + 1;
+}
+// --------- SORT BY BURST TIME (SJF) ---------// Simple selection sort
+for (int i = 0; i < n - 1; i++) {
+for (int j = i + 1; j < n; j++) {
+if (burst_time[j] < burst_time[i]) {
+// swap burst time
+int temp = burst_time[i];
+
+burst_time[i] = burst_time[j];
+burst_time[j] = temp;
+// swap process ID also
+int temp2 = processes[i];
+processes[i] = processes[j];
+processes[j] = temp2;
+}
+}
+}
+// --------- Waiting Time calculation ---------waiting_time[0] = 0;
+for (int i = 1; i < n; i++) {
+waiting_time[i] = waiting_time[i - 1] + burst_time[i - 1];
+}
+// --------- Turnaround Time calculation ---------for (int i = 0; i < n; i++) {
+turnaround_time[i] = burst_time[i] + waiting_time[i];
+}
+// --------- Display results ---------int total_wt = 0, total_tat = 0;
+printf("\nProcess\t Burst Time\tWaiting Time\tTurnaround Time\n");
+for (int i = 0; i < n; i++) {
+total_wt += waiting_time[i];
+total_tat += turnaround_time[i];
+printf("P%d\t\t%d\t\t%d\t\t%d\n",
+processes[i], burst_time[i], waiting_time[i], turnaround_time[i]);
+}
+printf("\nAverage Waiting Time = %.2f\n", (float)total_wt / n);
+printf("Average Turnaround Time = %.2f\n", (float)total_tat / n);
+return 0;
+}
+----------------------priority(Non - Premmptive)------------------------------#include
+int main() {
+int n;
+printf("Enter number of processes: ");
+scanf("%d", &n);
+int processes[n];
+int burst_time[n];
+int priority[n];
+int waiting_time[n];
+int turnaround_time[n];
+// Input burst times and priorities
+
+printf("Enter Burst Time and Priority for each process:\n");
+for (int i = 0; i < n; i++) {
+processes[i] = i + 1;
+printf("P%d Burst Time: ", i + 1);
+scanf("%d", &burst_time[i]);
+printf("P%d Priority (Lower value = Higher priority): ", i + 1);
+scanf("%d", &priority[i]);
+}
+// --------- SORT BY PRIORITY (Lower number = Higher priority) ---------for (int i = 0; i < n - 1; i++) {
+for (int j = i + 1; j < n; j++) {
+if (priority[j] < priority[i]) {
+// swap priority
+int temp = priority[i];
+priority[i] = priority[j];
+priority[j] = temp;
+// swap burst time
+int tempBT = burst_time[i];
+burst_time[i] = burst_time[j];
+burst_time[j] = tempBT;
+// swap process ID
+int tempP = processes[i];
+processes[i] = processes[j];
+processes[j] = tempP;
+}
+}
+}
+// --------- Waiting Time Calculation ---------waiting_time[0] = 0;
+for (int i = 1; i < n; i++) {
+waiting_time[i] = waiting_time[i - 1] + burst_time[i - 1];
+}
+// --------- Turnaround Time Calculation ---------for (int i = 0; i < n; i++) {
+turnaround_time[i] = waiting_time[i] + burst_time[i];
+}
+// --------- Display Results ---------int total_wt = 0, total_tat = 0;
+printf("\nProcess\tPriority\tBurst Time\tWaiting Time\tTurnaround Time\n");
+for (int i = 0; i < n; i++) {
+total_wt += waiting_time[i];
+total_tat += turnaround_time[i];
+printf("P%d\t %d\t\t %d\t\t %d\t\t %d\n",
+processes[i], priority[i], burst_time[i],
+waiting_time[i], turnaround_time[i]);
+}
+
+printf("\nAverage Waiting Time = %.2f\n", (float)total_wt / n);
+printf("Average Turnaround Time = %.2f\n", (float)total_tat / n);
+return 0;
+}
+----------------------Round Robin------------------------------#include
+int main() {
+int n, quantum;
+printf("Enter number of processes: ");
+scanf("%d", &n);
+int pid[n], arrival[n], burst[n], remaining[n];
+int waiting[n], turnaround[n], completion[n];
+printf("Enter Time Quantum: ");
+scanf("%d", &quantum);
+// Input
+printf("Enter Arrival Time and Burst Time for each process:\n");
+for (int i = 0; i < n; i++) {
+pid[i] = i + 1;
+printf("\nP%d Arrival Time: ", i + 1);
+scanf("%d", &arrival[i]);
+printf("P%d Burst Time: ", i + 1);
+scanf("%d", &burst[i]);
+remaining[i] = burst[i];
+}
+int current_time = 0;
+int completed = 0;
+// Gantt chart storage
+int gantt_pid[1000], gantt_time[1000];
+int g_index = 0;
+// Round Robin logic
+while (completed != n) {
+int done_anything = 0;
+for (int i = 0; i < n; i++) {
+if (arrival[i] <= current_time && remaining[i] > 0) {
+done_anything = 1;
+gantt_pid[g_index] = pid[i]; // record process execution
+gantt_time[g_index] = current_time;
+g_index++;
+
+if (remaining[i] > quantum) {
+remaining[i] -= quantum;
+current_time += quantum;
+} else {
+current_time += remaining[i];
+remaining[i] = 0;
+completion[i] = current_time;
+completed++;
+}
+}
+}
+// If CPU had no job at this time
+if (!done_anything) {
+current_time++;
+}
+}
+// Calculate WT and TAT
+for (int i = 0; i < n; i++) {
+turnaround[i] = completion[i] - arrival[i];
+waiting[i] = turnaround[i] - burst[i];
+}
+// Display table
+printf("\nProcess\tAT\tBT\tWT\tTAT\n");
+for (int i = 0; i < n; i++) {
+printf("P%d\t%d\t%d\t%d\t%d\n",
+pid[i], arrival[i], burst[i], waiting[i], turnaround[i]);
+}
+// Print Gantt chart
+printf("\n\nGantt Chart:\n");
+printf("--------------------------------------------------\n");
+for (int i = 0; i < g_index; i++) {
+printf(" P%d |", gantt_pid[i]);
+}
+printf("\n--------------------------------------------------\n");
+// Print timeline
+for (int i = 0; i < g_index; i++) {
+printf("%d ", gantt_time[i]);
+}
+printf("%d\n", current_time);
+return 0;
+}
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------Lab-5
+----------------------Semaphores------------------------------#include
+#include
+
+#include
+#include
+#define MAX_PORTS 5 // maximum number of threads allowed at once
+sem_t port_slots; // semaphore variable
+// Thread function
+void* worker(void *arg) {
+// Each thread tries to acquire a port slot
+sem_wait(&port_slots); // wait (decrease semaphore), block if 0
+// Critical section - only MAX_PORTS threads can be here together
+printf("Thread %ld: opened a port\n", (long)arg);
+sleep(1); // simulate work
+printf("Thread %ld: closing port\n", (long)arg);
+// Release the port slot
+sem_post(&port_slots); // increase semaphore (free resource)
+return NULL;
+}
+int main() {
+// Initialise the semaphore with MAX_PORTS slots
+// 0 means: semaphore shared between threads in this process
+sem_init(&port_slots, 0, MAX_PORTS);
+pthread_t th[20]; // array for 20 threads
+// Create 20 threads
+for (long i = 0; i < 20; i++) {
+pthread_create(&th[i], NULL, worker, (void*)i);
+}
+// Wait for all threads to complete
+for (int i = 0; i < 20; i++) {
+pthread_join(th[i], NULL);
+}
+// Destroy semaphore
+sem_destroy(&port_slots);
+return 0;
+}
+----------------------Monitors------------------------------#include
+#include
+#include
+#define MAX_PORTS 5 // Max threads allowed inside critical area at once
+int openPorts = 0; // Currently active "ports"
+
+pthread_mutex_t lock; // Monitor lock
+pthread_cond_t cond; // Condition variable
+void* worker(void *arg) {
+// Enter monitor
+pthread_mutex_lock(&lock);
+// If all ports are full, wait
+while (openPorts == MAX_PORTS) {
+pthread_cond_wait(&cond, &lock);
+}
+// Now this thread can take a port
+openPorts++;
+printf("Thread %ld: opened a port (open = %d)\n", (long)arg, openPorts);
+// Leave monitor (allow others to check capacity)
+pthread_mutex_unlock(&lock);
+// Simulate using the port
+sleep(1);
+// Re-enter monitor to release the port
+pthread_mutex_lock(&lock);
+openPorts--;
+printf("Thread %ld: closing port (open = %d)\n", (long)arg, openPorts);
+// Wake one waiting thread
+pthread_cond_signal(&cond);
+// Exit monitor
+pthread_mutex_unlock(&lock);
+return NULL;
+}
+int main() {
+pthread_t th[20];
+// Initialise mutex & condition variable
+pthread_mutex_init(&lock, NULL);
+pthread_cond_init(&cond, NULL);
+// Create 20 threads
+for (long i = 0; i < 20; i++) {
+pthread_create(&th[i], NULL, worker, (void*)i);
+}
+// Wait for all threads to complete
+for (int i = 0; i < 20; i++) {
+pthread_join(th[i], NULL);
+
+}
+// Destroy the monitor components
+pthread_mutex_destroy(&lock);
+pthread_cond_destroy(&cond);
+return 0;
+}
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------Lab-6
+----------------------Concurrent Threads------------------------------#include
+#include
+#include // The POSIX Threads library
+#include // For usleep()
+#define NUM_THREADS 5 // We'll use 5 threads
+// This is the function that all threads will run
+void* thread_function(void *arg) {
+// Get the message passed to this thread
+char *message = (char*) arg;
+for (int i = 0; i < 10; i++) {
+// Print the thread's message
+printf("%s\n", message);
+// Pause briefly to encourage the OS to switch threads
+usleep(1);
+}
+return NULL;
+}
+int main() {
+// Create an array to hold the 5 thread IDs
+pthread_t thread_ids[NUM_THREADS];
+// Create an array of messages, one for each thread
+char *messages[NUM_THREADS] = {
+"Thread 1: AAAAAAAAAA",
+"Thread 2: BBBBBBBBBB",
+"Thread 3: CCCCCCCCCC",
+"Thread 4: DDDDDDDDDD",
+"Thread 5: EEEEEEEEEE"
+};
+printf("Starting %d threads...\n", NUM_THREADS);
+// --- 1. Create all 5 threads in a loop --for (int i = 0; i < NUM_THREADS; i++) {
+if (pthread_create(&thread_ids[i], NULL, thread_function, (void*)messages[i]) != 0) {
+perror("Failed to create thread");
+return 1;
+
+}
+}
+// --- 2. Wait for all 5 threads to finish --printf("Waiting for threads to join...\n");
+for (int i = 0; i < NUM_THREADS; i++) {
+pthread_join(thread_ids[i], NULL);
+}
+
+printf("All %d threads have finished execution.\n", NUM_THREADS);
+return 0;
+}
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------Lab-7
+-----------------------------producer-consumer--------------------------------int main() {
+pthread_t prod, cons; // Variables to hold the thread IDs
+// Initialise semaphores and mutex
+// sem_init(sem, pshared, value)
+// pshared=0 means shared between threads
+sem_init(&empty, 0, BUFFER_SIZE); // Init 'empty' count to 5
+sem_init(&full, 0, 0); // Init 'full' count to 0
+pthread_mutex_init(&mutex, NULL); // Init the mutex lock (default attributes)
+// Create producer and consumer threads
+pthread_create(&prod, NULL, producer, NULL); // Start producer thread
+pthread_create(&cons, NULL, consumer, NULL); // Start consumer thread
+// Wait for threads to finish (which they never will)
+// The main thread will block here forever
+pthread_join(prod, NULL);
+pthread_join(cons, NULL);
+// Clean up (this code is unreachable but good practice)
+sem_destroy(&empty);
+sem_destroy(&full);
+pthread_mutex_destroy(&mutex);
+return 0;
+}
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------Lab-8
+----------------------first Fit------------------------------#include
+int main() {
+int nb, np, b[10], p[10], allocation[10];
+int i, j;
+printf("Enter the number of memory blocks: ");
+scanf("%d", &nb);
+
+printf("Enter the size of each block:\n");
+for (i = 0; i < nb; i++) {
+printf("Block %d: ", i + 1);
+scanf("%d", &b[i]);
+}
+printf("Enter the number of processes: ");
+scanf("%d", &np);
+printf("Enter the size of each process:\n");
+for (i = 0; i < np; i++) {
+printf("Process %d: ", i + 1);
+scanf("%d", &p[i]);
+}
+// Initialize allocation array (-1 means not allocated)
+for (i = 0; i < np; i++)
+allocation[i] = -1;
+// First Fit Allocation
+for (i = 0; i < np; i++) {
+for (j = 0; j < nb; j++) {
+if (b[j] >= p[i]) {
+allocation[i] = j;
+b[j] -= p[i]; // Reduce the available size of the block
+break;
+}
+}
+}
+// Display allocation results
+printf("\nProcess No.\tProcess Size\tBlock No.\n");
+for (i = 0; i < np; i++) {
+if (allocation[i] != -1)
+printf("%d\t\t%d\t\t%d\n", i + 1, p[i], allocation[i] + 1);
+else
+printf("%d\t\t%d\t\tNot Allocated\n", i + 1, p[i]);
+}
+return 0;
+}
+----------------------worst Fit------------------------------#include
+int main() {
+int nb, np, b[10], p[10], allocation[10];
+int i, j, worst;
+printf("Enter the number of memory blocks: ");
+scanf("%d", &nb);
+printf("Enter the size of each block:\n");
+for (i = 0; i < nb; i++) {
+printf("Block %d: ", i + 1);
+scanf("%d", &b[i]);
+}
+printf("Enter the number of processes: ");
+scanf("%d", &np);
+printf("Enter the size of each process:\n");
+for (i = 0; i < np; i++) {
+printf("Process %d: ", i + 1);
+scanf("%d", &p[i]);
+}
+
+// Initialize allocation array (-1 means not allocated)
+for (i = 0; i < np; i++)
+allocation[i] = -1;
+// Worst Fit Allocation
+for (i = 0; i < np; i++) {
+worst = -1;
+for (j = 0; j < nb; j++) {
+if (b[j] >= p[i]) { // block can fit process
+if (worst == -1 || b[j] > b[worst])
+worst = j; // choose the largest suitable block
+}
+}
+if (worst != -1) { // allocate process
+allocation[i] = worst;
+b[worst] -= p[i]; // reduce block size
+}
+}
+// Display allocation results
+printf("\nProcess No.\tProcess Size\tBlock No.\n");
+for (i = 0; i < np; i++) {
+if (allocation[i] != -1)
+printf("%d\t\t%d\t\t%d\n", i + 1, p[i], allocation[i] + 1);
+else
+printf("%d\t\t%d\t\tNot Allocated\n", i + 1, p[i]);
+}
+return 0;
+}
+----------------------Best Fit------------------------------#include
+int main() {
+int nb, np, b[10], p[10], allocation[10];
+int i, j, best;
+printf("Enter the number of memory blocks: ");
+scanf("%d", &nb);
+printf("Enter the size of each block:\n");
+for (i = 0; i < nb; i++) {
+printf("Block %d: ", i + 1);
+scanf("%d", &b[i]);
+}
+printf("Enter the number of processes: ");
+scanf("%d", &np);
+printf("Enter the size of each process:\n");
+for (i = 0; i < np; i++) {
+printf("Process %d: ", i + 1);
+scanf("%d", &p[i]);
+}
+// Initialize allocation array
+for (i = 0; i < np; i++)
+allocation[i] = -1;
+// Best Fit Allocation
+for (i = 0; i < np; i++) {
+best = -1;
+for (j = 0; j < nb; j++) {
+if (b[j] >= p[i]) { // block can fit process
+
+if (best == -1 || b[j] < b[best])
+best = j; // choose the smaller suitable block
+}
+}
